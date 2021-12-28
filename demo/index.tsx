@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { resolve as urlResolve } from 'url';
 import { RedocStandalone } from '../src';
 import ComboBox from './ComboBox';
+import { ColorPicker } from './ColorPicker';
 
 const DEFAULT_SPEC = 'openapi.yaml';
 const NEW_VERSION_SPEC = 'openapi-3-1.yaml';
@@ -22,7 +23,7 @@ const demos = [
 
 class DemoApp extends React.Component<
   {},
-  { specUrl: string; dropdownOpen: boolean; cors: boolean }
+  { specUrl: string; dropdownOpen: boolean; cors: boolean; primaryColor: string }
 > {
   constructor(props) {
     super(props);
@@ -43,12 +44,13 @@ class DemoApp extends React.Component<
       specUrl: url,
       dropdownOpen: false,
       cors,
+      primaryColor: '#32329f',
     };
   }
 
   handleChange = (url: string) => {
     if (url === NEW_VERSION_SPEC) {
-      this.setState({ cors: false })
+      this.setState({ cors: false });
     }
     this.setState({
       specUrl: url,
@@ -72,8 +74,12 @@ class DemoApp extends React.Component<
     );
   };
 
+  handleColor = (primaryColor: string) => {
+    this.setState({ primaryColor });
+  };
+
   render() {
-    const { specUrl, cors } = this.state;
+    const { specUrl, cors, primaryColor } = this.state;
     let proxiedUrl = specUrl;
     if (specUrl !== DEFAULT_SPEC) {
       proxiedUrl = cors
@@ -100,6 +106,19 @@ class DemoApp extends React.Component<
               <input id="cors_checkbox" type="checkbox" onChange={this.toggleCors} checked={cors} />
               <label htmlFor="cors_checkbox">CORS</label>
             </CorsCheckbox>
+            <SettingsContainer>
+              <IconSettings />
+              <DropDown>
+                <h3>Settings</h3>
+                <Option>
+                  <ColorPicker
+                    title={'Primary Color'}
+                    onChange={this.handleColor}
+                    defaultValue={primaryColor}
+                  />
+                </Option>
+              </DropDown>
+            </SettingsContainer>
           </ControlsContainer>
           <iframe
             src="https://ghbtns.com/github-btn.html?user=Redocly&amp;repo=redoc&amp;type=star&amp;count=true&amp;size=large"
@@ -111,7 +130,13 @@ class DemoApp extends React.Component<
         </Heading>
         <RedocStandalone
           specUrl={proxiedUrl}
-          options={{ scrollYOffset: 'nav', untrustedSpec: true }}
+          options={{
+            scrollYOffset: 'nav',
+            untrustedSpec: true,
+            theme: {
+              colors: { primary: { main: primaryColor } },
+            },
+          }}
         />
       </>
     );
@@ -165,6 +190,98 @@ const Logo = styled.img`
 
   @media screen and (max-width: 950px) {
     display: none;
+  }
+`;
+
+const IconSettings = styled.div`
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(133deg, #e7c999, #ff8a0c);
+  border-radius: 100%;
+  margin-left: 15px;
+  cursor: pointer;
+
+  &:after {
+    content: '⚙';
+    font-size: 23px;
+    color: #fff;
+  }
+`;
+
+const DropDown = styled.div`
+  display: none;
+  position: absolute;
+  background: #fff;
+  border-radius: 5px;
+  margin-top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  border: 1px solid #d9d5d5;
+
+  @media (max-width: 324px) {
+    width: 95%;
+  }
+
+  &:before {
+    content: '';
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #d9d5d5;
+    background: #fff;
+    left: 53%;
+    transform: translateX(-50%) rotate(135deg);
+    top: -12px;
+    z-index: 1;
+    @media (max-width: 324px) {
+      display: none;
+    }
+  }
+
+  &:after {
+    content: '';
+    height: 21px;
+    width: 100%;
+    position: absolute;
+    left: 0;
+    top: -21px;
+    z-index: 0;
+  }
+
+  h3 {
+    background: #fafafa;
+    padding: 10px;
+    font-size: 15px;
+    font-weight: normal;
+    margin: 0;
+    z-index: 2;
+    position: relative;
+  }
+`;
+
+const SettingsContainer = styled.div`
+  position: relative;
+
+  &:hover ${DropDown} {
+    display: block;
+  }
+
+  @media (max-width: 324px) {
+    position: initial;
+  }
+`;
+
+const Option = styled.div`
+  label {
+    font-weight: bold;
+    font-size: 16px;
+    margin-right: 10px;
   }
 `;
 
